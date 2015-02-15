@@ -123,14 +123,19 @@
 	}
 
 	function showEndGame() {
+		clearInterval(timer);
 		$('.game').addClass('hidden');
 		$('.game-end').removeClass('hidden');
 
 		score = Math.min(10 * played.reduce(function(prev, current) {
 			return prev + current;
-		}, 0) + (20 - seconds), 100);
+		}, 0), 100);
 
 		$('.score').html('You scored: ' + score + '/' + 10 * gameLength);
+
+		$('.twitter-share-button').data('text', 'I am terrible with JS and I scored: ' + (score + '/' + 10 * gameLength) + '. Check this out: http://watjs.olek.it')
+
+		ga('send', 'event', 'game', 'end', score);
 	}
 
 	function next() {
@@ -146,7 +151,6 @@
 				}, '')
 			).find('.btn').each(function (i, btn){
 				btn.theAnswer = answers[i][1];
-				btn.innerHTML += ' ' + answers[i][1];
 			});
 
 			$('.a').text(varNames[round[1]]);
@@ -159,6 +163,7 @@
 
 	$(function () {
 		$('.play-game').click(function () {
+			ga('send', 'event', 'game', 'play');
 			$('.intro, .game-end').addClass('hidden');
 			$('.game').removeClass('hidden');
 
@@ -172,14 +177,25 @@
 		$('.answer').on('click', function (event) {
 			played.push(event.target.theAnswer);
 			next();
+
+			ga('send', 'event', 'game', 'answer', event.target.theAnswer);
+		});
+
+		$('.restart').on('click', function(){
+			ga('send', 'event', 'game', 'restart');
 		});
 
 		$('.share-button').click(function () {
+			ga('send', 'event', 'game', 'share-score');
+
 			if (window.FB) {
+
+				var msg = score < 50 ? 'I am terrible with JS.' : 'I am decent with JS.';
+
 				FB.ui({
 					method: 'feed',
 					link: 'http://watjs.olek.it',
-					caption: 'I am terrible at JS with a score: ' + score + '/100'
+					caption: msg + ' I scored: ' + score + '/100'
 				}, function(response){});
 			}
 		});
